@@ -194,7 +194,7 @@ namespace ILLIXR_AUDIO
         unsigned int byteRate = 48000*2*2;
         unsigned short BlockAlign = 2*2;
         unsigned short BitsPerSample = 16;
-        unsigned int dataChunkID = 0x61746164;  
+        unsigned int dataChunkID = 0x61746164;
         unsigned int dataChunkSize = 48000000;      /// A large enough random number
     } WAVHeader;
 }
