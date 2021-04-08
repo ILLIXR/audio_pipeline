@@ -1,4 +1,5 @@
 #include <audio.h>
+#include "common/cpu_timer/cpu_timer.hpp"
 
 ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeIn){
     processType = procTypeIn;
@@ -81,7 +82,10 @@ void ILLIXR_AUDIO::ABAudio::processBlock(){
     if (processType != ILLIXR_AUDIO::ABAudio::ProcessType::ENCODE){
         // processing garbage data if just decoding
         rotateNZoom(sumBF);
+		{
+			CPU_TIMER_TIME_BLOCK("decode_sample")
         decoder->Process(&sumBF, resultSample);
+		}
     }
 
     if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL){
@@ -97,7 +101,7 @@ void ILLIXR_AUDIO::ABAudio::processBlock(){
 void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF){
     CBFormat* tempBF;
     for (unsigned int soundIdx = 0; soundIdx < soundSrcs->size(); ++soundIdx){
-        tempBF = (*soundSrcs)[soundIdx]->readInBFormat();
+		tempBF = (*soundSrcs)[soundIdx]->readInBFormat();
         if (soundIdx == 0)
             sumBF = *tempBF;
         else
@@ -122,6 +126,7 @@ void ILLIXR_AUDIO::ABAudio::updateZoom(){
 }
 // Process some rotation and zoom effects
 void ILLIXR_AUDIO::ABAudio::rotateNZoom(CBFormat& sumBF){
+	CPU_TIMER_TIME_FUNCTION();
 	updateRotation();
 	rotator->Process(&sumBF, BLOCK_SIZE);
 	updateZoom();

@@ -1,5 +1,6 @@
 #include <sound.h>
 #include <algorithm>
+#include "common/cpu_timer/cpu_timer.hpp"
 
 
 ILLIXR_AUDIO::Sound::Sound(std::string srcFilename, unsigned nOrder, bool b3D){
@@ -44,10 +45,16 @@ CBFormat* ILLIXR_AUDIO::Sound::readInBFormat(){
     short sampleTemp[BLOCK_SIZE];
     srcFile->read((char*)sampleTemp, BLOCK_SIZE * sizeof(short));
     // normalize samples to -1 to 1 float, with amplitude scale
+	{
+		CPU_TIMER_TIME_BLOCK("copy_sample");
     for (int i = 0; i < BLOCK_SIZE; ++i){
         sample[i] = amp * (sampleTemp[i] / 32767.0);
     }
-    BEncoder->Process(sample, BLOCK_SIZE, BFormat);
+	}
+	{
+		CPU_TIMER_TIME_BLOCK("encode_sample");
+		BEncoder->Process(sample, BLOCK_SIZE, BFormat);
+	}
     return BFormat;
 }
 
