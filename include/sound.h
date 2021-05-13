@@ -1,42 +1,39 @@
-#ifndef _SOUND_H_
-#define _SOUND_H_
+#pragma once
 
-#include <spatialaudio/Ambisonics.h>
 #include <string>
 #include <fstream>
+#include <memory>
+#include <spatialaudio/Ambisonics.h>
 
-#define SAMPLERATE 48000
-#define BLOCK_SIZE 512
-#define NORDER 3
+constexpr std::size_t SAMPLERATE {48000U};
+constexpr std::size_t BLOCK_SIZE {512U};   /// Change to 1024U?
+constexpr std::size_t NORDER     {3U};
+constexpr std::size_t NUM_SRCS   {16U};    /// Change to 4U?
+
 #define NUM_CHANNELS (OrderToComponents(NORDER, true))
-#define NUM_SRCS 16
 
 namespace ILLIXR_AUDIO{
 	class Sound{
 	public:
-		Sound();
-		~Sound();
-
 		Sound(std::string srcFile, unsigned nOrder, bool b3D);
 		// set sound src position
-		void setSrcPos(PolarPoint& pos);
+		void setSrcPos(PolarPoint pos);
 		// set sound amplitude scale
 		void setSrcAmp(float ampScale);
 		// read sound samples from mono 16bit WAV file and encode into ambisonics format
-		CBFormat* readInBFormat();
+        std::unique_ptr<CBFormat>& readInBFormat();
 	private:
 		// corresponding sound src file
-		std::fstream* srcFile;
+		std::fstream srcFile;
 		// sample buffer HARDCODE
 		float sample[BLOCK_SIZE];
 		// ambisonics format sound buffer
-		CBFormat* BFormat;
+        std::unique_ptr<CBFormat> BFormat;
 		// ambisonics encoder, containing format info, position info, etc.
-		CAmbisonicEncoderDist* BEncoder;
+		CAmbisonicEncoderDist BEncoder;
 		// ambisonics position
 		PolarPoint srcPos;
 		// amplitude scale to avoid clipping
 		float amp;
 	};
 }
-#endif

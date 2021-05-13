@@ -1,7 +1,6 @@
-#ifndef _AUDIO_H_
-#define _AUDIO_H_
+#pragma once
 
-#include <sound.h>
+#include "sound.h"
 #include <vector>
 #include <string>
 #include <pthread.h>
@@ -17,7 +16,6 @@ namespace ILLIXR_AUDIO{
 			DECODE			// For profiling, do ambisonics decoding without file output
 		};
 		ABAudio(std::string outputFilePath, ProcessType processType);
-		~ABAudio();
 		// Process a block (1024) samples of sound
 		void processBlock();
 		// Load sound source files (predefined)
@@ -34,15 +32,17 @@ namespace ILLIXR_AUDIO{
 	private:
 		ProcessType processType;
 		// a list of sound sources in this audio
-		std::vector<Sound*>* soundSrcs;
+		std::vector<Sound> soundSrcs;
 		// target output file
-		std::ofstream* outputFile;
+        std::optional<std::ofstream> outputFile;
 		// decoder associated with this audio
-		CAmbisonicBinauralizer* decoder;
+		CAmbisonicBinauralizer decoder;
 		// ambisonics rotator associated with this audio
-		CAmbisonicProcessor* rotator;
+		CAmbisonicProcessor rotator;
 		// ambisonics zoomer associated with this audio
-		CAmbisonicZoomer* zoomer;
+		CAmbisonicZoomer zoomer;
+
+		int frame = 0;
 
 		// Generate dummy WAV output file header
 		void generateWAVHeader();
@@ -57,4 +57,3 @@ namespace ILLIXR_AUDIO{
 		void updateZoom();
 	};
 }
-#endif
