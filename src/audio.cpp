@@ -52,9 +52,9 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
 
         soundSrcs.emplace_back("samples/radioMusicSample.wav", NORDER, true);
         soundSrcs.back().setSrcPos({
-            .fAzimuth   = 1.0f, /// Should be same as lectureSample?
-            .fElevation = 0f,   /// Should be same as lectureSample?
-            .fDistance  = 5     /// Should be same as lectureSample?
+            .fAzimuth   = 1.0f,
+            .fElevation = 0f,
+            .fDistance  = 5
         });
     } else {
         for (unsigned int i = 0U; i < NUM_SRCS; i++) {
