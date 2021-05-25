@@ -35,5 +35,8 @@ namespace ILLIXR_AUDIO{
 		PolarPoint srcPos;
 		// amplitude scale to avoid clipping
 		float amp;
+
+		// Abort failed configuration
+		void configAbort(const std::string_view& compName) const;
 	};
 }

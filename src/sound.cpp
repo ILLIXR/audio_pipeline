@@ -1,7 +1,12 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdlib>
 #include "sound.h"
+
+#ifdef ILLIXR_INTEGRATION
+#include "../common/error_util.hpp"
+#endif /// ILLIXR_INTEGRATION
 
 
 ILLIXR_AUDIO::Sound::Sound(
@@ -19,11 +24,15 @@ ILLIXR_AUDIO::Sound::Sound(
     srcFile.read(reinterpret_cast<char*>(temp), sizeof(temp));
 
     /// BFormat file initialization
-    assert(BFormat->Configure(nOrder, true, BLOCK_SIZE));
+    if (!BFormat->Configure(nOrder, true, BLOCK_SIZE)) {
+        configAbort("BFormat");
+    }
     BFormat->Refresh();
 
     /// Encoder initialization
-    assert(BEncoder.Configure(nOrder, true, SAMPLERATE));
+    if (!BEncoder.Configure(nOrder, true, SAMPLERATE)) {
+        configAbort("BEncoder");
+    }
     BEncoder.Refresh();
 
     srcPos.fAzimuth   = 0.0f;
@@ -67,4 +76,15 @@ std::weak_ptr<CBFormat> ILLIXR_AUDIO::Sound::readInBFormat() {
 
     BEncoder.Process(sample, BLOCK_SIZE, BFormat.get());
     return BFormat;
+}
+
+void ILLIXR_AUDIO::Sound::configAbort(const std::string_view& compName) const
+{
+    static constexpr std::string_view cfg_fail_msg{"[Sound] Failed to configure "};
+#ifdef ILLIXR_INTEGRATION
+    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{compName});
+#else
+    std::cerr << cfg_fail_msg << compName << std::endl;
+    std::abort();
+#endif /// ILLIXR_INTEGRATION
 }
