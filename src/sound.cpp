@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include "sound.h"
 
 
@@ -18,16 +19,16 @@ ILLIXR_AUDIO::Sound::Sound(
     srcFile.read(std::reinterpret_cast<std::byte*>(temp), sizeof(temp));
 
     /// BFormat file initialization
-    assert(BFormat.Configure(nOrder, true, BLOCK_SIZE));
-    BFormat.Refresh();
+    assert(BFormat->Configure(nOrder, true, BLOCK_SIZE));
+    BFormat->Refresh();
 
     /// Encoder initialization
     assert(BEncoder.Configure(nOrder, true, SAMPLERATE));
     BEncoder.Refresh();
 
-    srcPos.fAzimuth   = 0f;
-    srcPos.fElevation = 0f;
-    srcPos.fDistance  = 0;
+    srcPos.fAzimuth   = 0.0f;
+    srcPos.fElevation = 0.0f;
+    srcPos.fDistance  = 0.0f;
 
     BEncoder.SetPosition(srcPos);
     BEncoder.Refresh();
@@ -56,7 +57,7 @@ void ILLIXR_AUDIO::Sound::setSrcAmp(float ampScale) {
 /// TODO: Change brutal read from wav file
 std::unique_ptr<CBFormat>& ILLIXR_AUDIO::Sound::readInBFormat() {
     float sampleTemp[BLOCK_SIZE];
-    srcFile->read((char*)sampleTemp, BLOCK_SIZE * sizeof(short));
+    srcFile.read((char*)sampleTemp, BLOCK_SIZE * sizeof(short));
 
     /// Normalize samples to -1 to 1 float, with amplitude scale
     constexpr float SAMPLE_DIV {(2 << 14) - 1}; /// 32767.0f == 2^14 - 1
@@ -64,6 +65,6 @@ std::unique_ptr<CBFormat>& ILLIXR_AUDIO::Sound::readInBFormat() {
         sample[i] = amp * (sampleTemp[i] / SAMPLE_DIV);
     }
 
-    BEncoder.Process(sample, BLOCK_SIZE, BFormat.get());
+    BEncoder.Process(sample, BLOCK_SIZE, BFormat->get());
     return BFormat;
 }
