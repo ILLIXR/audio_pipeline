@@ -137,7 +137,7 @@ void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF) {
                 "[ABAudio] Failed to read/encode. Sound has expired or been destroyed."
             };
 #ifdef ILLIXR_INTEGRATION
-            ILLIXR::abort(read_fail_msg);
+            ILLIXR::abort(std::string{read_fail_msg});
 #else
             std::cerr << read_fail_msg << std::endl;
             std::abort();
