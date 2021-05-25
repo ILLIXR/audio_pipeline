@@ -16,7 +16,7 @@ ILLIXR_AUDIO::Sound::Sound(
     /// TODO: Change brutal read from wav file
     constexpr std::size_t SRC_FILE_SIZE {44U};
     std::byte temp[SRC_FILE_SIZE];
-    srcFile.read(std::reinterpret_cast<std::byte*>(temp), sizeof(temp));
+    srcFile.read(reinterpret_cast<std::byte*>(temp), sizeof(temp));
 
     /// BFormat file initialization
     assert(BFormat->Configure(nOrder, true, BLOCK_SIZE));
@@ -65,6 +65,6 @@ std::unique_ptr<CBFormat>& ILLIXR_AUDIO::Sound::readInBFormat() {
         sample[i] = amp * (sampleTemp[i] / SAMPLE_DIV);
     }
 
-    BEncoder.Process(sample, BLOCK_SIZE, BFormat->get());
+    BEncoder.Process(sample, BLOCK_SIZE, BFormat.get());
     return BFormat;
 }
