@@ -55,7 +55,7 @@ namespace ILLIXR_AUDIO{
 		void writeFile(float** resultSample);
 
 		// Abort failed configuration
-		void configAbort(const string_view& compName) const;
+		void configAbort(const std::string_view& compName) const;
 
 		void updateRotation();
 		void updateZoom();

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
+#include <optional>
 #include "audio.h"
 
 #ifdef ILLIXR_INTEGRATION
@@ -64,7 +65,7 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
         soundSrcs.emplace_back("samples/radioMusicSample.wav", NORDER, true);
         soundSrcs.back().setSrcPos({
             .fAzimuth   = 1.0f,
-            .fElevation = 0f,
+            .fElevation = 0.0f,
             .fDistance  = 5
         });
     } else {
@@ -81,7 +82,7 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
             soundSrcs.back().setSrcPos({
                 .fAzimuth   = i * -0.1f,
                 .fElevation = i * 3.14f/2,
-                .fDistance  = i * 1
+                .fDistance  = i * 1.0f
             });
         }
     }
@@ -122,7 +123,7 @@ void ILLIXR_AUDIO::ABAudio::processBlock() {
 
 /// Read from WAV files and encode into ambisonics format
 void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF) {
-    for (unsigned int soundIdx = 0U; soundIdx < soundSrcs->size(); ++soundIdx) {
+    for (unsigned int soundIdx = 0U; soundIdx < soundSrcs.size(); ++soundIdx) {
         std::unique_ptr<CBFormat>& tempBF {soundSrcs[soundIdx].readInBFormat()};
         if (soundIdx == 0U) {
             sumBF = *tempBF;
@@ -205,11 +206,11 @@ void ILLIXR_AUDIO::ABAudio::generateWAVHeader() {
 }
 
 
-void ILLIXR_AUDIO::ABAudio::configAbort(const string_view& compName) const
+void ILLIXR_AUDIO::ABAudio::configAbort(const std::string_view& compName) const
 {
-    constexpr std::string_view cfg_fail_msg{"[ABAudio] Failed to configure "};
+    static constexpr std::string_view cfg_fail_msg{"[ABAudio] Failed to configure "};
 #ifdef ILLIXR_INTEGRATION
-    ILLIXR::abort(cfg_fail_msg + compName);
+    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{compName});
 #else
     std::cerr << cfg_fail_msg << compName << std::endl;
     std::abort();
