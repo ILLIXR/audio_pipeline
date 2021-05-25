@@ -38,7 +38,7 @@ ILLIXR_AUDIO::Sound::Sound(
 }
 
 
-void ILLIXR_AUDIO::Sound::setSrcPos(PolarPoint pos) {
+void ILLIXR_AUDIO::Sound::setSrcPos(const PolarPoint& pos) {
     srcPos.fAzimuth   = pos.fAzimuth;
     srcPos.fElevation = pos.fElevation;
     srcPos.fDistance  = pos.fDistance;

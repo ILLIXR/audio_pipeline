@@ -1,6 +1,11 @@
 #include <iostream>
 #include <cassert>
+#include <cstdlib>
 #include "audio.h"
+
+#ifdef ILLIXR_INTEGRATION
+#include "../common/error_util.hpp"
+#endif /// ILLIXR_INTEGRATION
 
 
 ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeIn)
@@ -18,13 +23,19 @@ ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeI
     unsigned int tailLength {0U};
 
     /// Binauralizer as ambisonics decoder
-    assert(decoder.Configure(NORDER, true, SAMPLERATE, BLOCK_SIZE, tailLength));
+    if (!decoder.Configure(NORDER, true, SAMPLERATE, BLOCK_SIZE, tailLength)) {
+        configAbort("decoder");
+    }
 
     /// Processor to rotate
-    assert(rotator.Configure(NORDER, true, BLOCK_SIZE, tailLength));
+    if (!rotator.Configure(NORDER, true, BLOCK_SIZE, tailLength)) {
+        configAbort("rotator");
+    }
 
     /// Processor to zoom
-    assert(zoomer.Configure(NORDER, true, tailLength));
+    if (!zoomer.Configure(NORDER, true, tailLength)) {
+        configAbort("zoomer");
+    }
 
     buffer_ready = false;
     num_blocks_left = 0;
@@ -191,4 +202,16 @@ void ILLIXR_AUDIO::ABAudio::generateWAVHeader() {
     /// Brute force wav header
     WAVHeader wavh;
     outputFile->write((char*)&wavh, sizeof(WAVHeader));
+}
+
+
+void ILLIXR_AUDIO::ABAudio::configAbort(const string_view& compName) const
+{
+    constexpr std::string_view cfg_fail_msg{"[ABAudio] Failed to configure "};
+#ifdef ILLIXR_INTEGRATION
+    ILLIXR::abort(cfg_fail_msg + compName);
+#else
+    std::cerr << cfg_fail_msg << compName << std::endl;
+    std::abort();
+#endif /// ILLIXR_INTEGRATION
 }

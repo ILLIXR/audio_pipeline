@@ -3,6 +3,7 @@
 #include "sound.h"
 #include <vector>
 #include <string>
+#include <string_view>
 #include <pthread.h>
 
 namespace ILLIXR_AUDIO{
@@ -52,6 +53,9 @@ namespace ILLIXR_AUDIO{
 		void rotateNZoom(CBFormat& sumBF);
 		// Write out a block of samples to the output file
 		void writeFile(float** resultSample);
+
+		// Abort failed configuration
+		void configAbort(const string_view& compName) const;
 
 		void updateRotation();
 		void updateZoom();
