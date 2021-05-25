@@ -16,7 +16,7 @@ ILLIXR_AUDIO::Sound::Sound(
     /// TODO: Change brutal read from wav file
     constexpr std::size_t SRC_FILE_SIZE {44U};
     std::byte temp[SRC_FILE_SIZE];
-    srcFile.read(reinterpret_cast<std::byte*>(temp), sizeof(temp));
+    srcFile.read(reinterpret_cast<char*>(temp), sizeof(temp));
 
     /// BFormat file initialization
     assert(BFormat->Configure(nOrder, true, BLOCK_SIZE));
