@@ -9,7 +9,7 @@ ILLIXR_AUDIO::Sound::Sound(
     [[maybe_unused]] unsigned int nOrder,
     [[maybe_unused]] bool b3D
 ) : srcFile{srcFilename, std::fstream::in}
-  , BFormat{new CBFormat}
+  , BFormat{std::make_shared<CBFormat>()}
   , amp{1.0}
 {
     /// NOTE: This is currently only accepts mono channel 16-bit depth WAV file
@@ -55,7 +55,7 @@ void ILLIXR_AUDIO::Sound::setSrcAmp(float ampScale) {
 
 
 /// TODO: Change brutal read from wav file
-std::unique_ptr<CBFormat>& ILLIXR_AUDIO::Sound::readInBFormat() {
+std::weak_ptr<CBFormat> ILLIXR_AUDIO::Sound::readInBFormat() {
     float sampleTemp[BLOCK_SIZE];
     srcFile.read((char*)sampleTemp, BLOCK_SIZE * sizeof(short));
 

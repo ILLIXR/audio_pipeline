@@ -21,14 +21,14 @@ namespace ILLIXR_AUDIO{
 		// set sound amplitude scale
 		void setSrcAmp(float ampScale);
 		// read sound samples from mono 16bit WAV file and encode into ambisonics format
-        std::unique_ptr<CBFormat>& readInBFormat();
+        std::weak_ptr<CBFormat> readInBFormat();
 	private:
 		// corresponding sound src file
 		std::fstream srcFile;
 		// sample buffer HARDCODE
 		float sample[BLOCK_SIZE];
 		// ambisonics format sound buffer
-        std::unique_ptr<CBFormat> BFormat;
+        std::shared_ptr<CBFormat> BFormat;
 		// ambisonics encoder, containing format info, position info, etc.
 		CAmbisonicEncoderDist BEncoder;
 		// ambisonics position

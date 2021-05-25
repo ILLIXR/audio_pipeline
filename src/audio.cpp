@@ -121,11 +121,27 @@ void ILLIXR_AUDIO::ABAudio::processBlock() {
 /// Read from WAV files and encode into ambisonics format
 void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF) {
     for (unsigned int soundIdx = 0U; soundIdx < soundSrcs.size(); ++soundIdx) {
-        std::unique_ptr<CBFormat>& tempBF {soundSrcs[soundIdx].readInBFormat()};
-        if (soundIdx == 0U) {
-            sumBF = *tempBF;
+        /// 'readInBFormat' now returns a weak_ptr, ensuring that we don't access
+        /// or destruct a freed resource
+        std::weak_ptr<CBFormat> tempBF_weak {soundSrcs[soundIdx].readInBFormat()};
+        std::shared_ptr<CBFormat> tempBF{tempBF_weak.lock()};
+
+        if (tempBF != nullptr) {
+            if (soundIdx == 0U) {
+                sumBF = *tempBF;
+            } else {
+                sumBF += *tempBF;
+            }
         } else {
-            sumBF += *tempBF;
+            static constexpr std::string_view read_fail_msg{
+                "[ABAudio] Failed to read/encode. Sound has expired or been destroyed."
+            };
+#ifdef ILLIXR_INTEGRATION
+            ILLIXR::abort(read_fail_msg);
+#else
+            std::cerr << read_fail_msg << std::endl;
+            std::abort();
+#endif /// ILLIXR_INTEGRATION
         }
    }
 }
