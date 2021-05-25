@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
-#include <optional>
 #include "audio.h"
 
 #ifdef ILLIXR_INTEGRATION

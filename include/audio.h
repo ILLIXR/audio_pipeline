@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <optional>
 #include <pthread.h>
 
 namespace ILLIXR_AUDIO{
