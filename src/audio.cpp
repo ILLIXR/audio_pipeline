@@ -10,7 +10,7 @@
 
 
 ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeIn)
-    : ProcessType {procTypeIn}
+    : processType {procTypeIn}
     , outputFile {
           processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL
           ? std::make_optional<std::ofstream>(outputFilePath, std::ios_base::out | std::ios_base::binary)
@@ -52,8 +52,6 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
 #endif /// NDEBUG
 
     /// Add a bunch of sound sources
-    PolarPoint position;
-
     if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL) {
         soundSrcs.emplace_back("samples/lectureSample.wav", NORDER, true);
         soundSrcs.back().setSrcPos({
