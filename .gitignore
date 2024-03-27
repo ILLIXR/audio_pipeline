@@ -4,3 +4,6 @@
 audio
 solo.dbg
 solo.opt
+
+cmake-*
+.idea

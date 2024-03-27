@@ -5,7 +5,7 @@
 #include "sound.h"
 
 #ifdef ILLIXR_INTEGRATION
-#include "../common/error_util.hpp"
+#include "illixr/error_util.hpp"
 #endif /// ILLIXR_INTEGRATION
 
 
