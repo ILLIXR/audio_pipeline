@@ -17,6 +17,8 @@ set(ILLIXR_ROOT "" CACHE PATH "Path to ILLIXR headers")
 pkg_check_modules(PORTAUDIO portaudio-2.0>=19)
 pkg_check_modules(SPATIALAUDIO spatialaudio)
 find_package(spdlog REQUIRED)
+find_package(SQLite3 REQUIRED)
+
 add_executable(solo${ILLIXR_BUILD_SUFFIX}.exe src/main.cpp)
 add_library(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} SHARED src/audio.cpp src/audio_component.cpp src/sound.cpp src/realtime.cpp)
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${PROJECT_SOURCE_DIR}/include ${ILLIXR_ROOT})
@@ -24,7 +26,7 @@ if(ILLIXR_INTEGRATION)
     target_compile_definitions(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} PUBLIC -DAUDIO_SAMPLES=\"${CMAKE_INSTALL_PREFIX}/etc/audio_pipeline\")
 endif()
 target_include_directories(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} PUBLIC ${PORTAUDIO_INCLUDE_DIRS} ${SPATIALAUDIO_INCLUDE_DIRS})
-target_link_libraries(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} PUBLIC ${PORTAUDIO_LIBRARIES} ${SPATIALAUDIO_LIBRARIES} spdlog::spdlog)
+target_link_libraries(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} PUBLIC ${PORTAUDIO_LIBRARIES} ${SPATIALAUDIO_LIBRARIES} spdlog::spdlog sqlite3)
 
 target_link_libraries(solo${ILLIXR_BUILD_SUFFIX}.exe PUBLIC plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} pthread spdlog::spdlog)
 
