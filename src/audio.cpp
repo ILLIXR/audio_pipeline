@@ -59,7 +59,7 @@ ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeI
 }
 
 #ifdef ILLIXR_INTEGRATION
-void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<switchboard> sb){
+void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<ILLIXR::switchboard> sb){
 #else
 void ILLIXR_AUDIO::ABAudio::loadSource(){
 #endif
