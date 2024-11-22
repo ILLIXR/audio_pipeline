@@ -10,7 +10,7 @@
 #endif /// ILLIXR_INTEGRATION
 
 #ifdef ILLIXR_INTEGRATION
-std::string get_path(const std::shared_ptr<switchboard> sb) {
+std::string get_path(const std::shared_ptr<ILLIXR::switchboard> sb) {
     std::string path = std::string{AUDIO_SAMPLES} + "/samples";
     if(std::filesystem::is_directory(path))
         return path;
