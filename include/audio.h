@@ -6,6 +6,9 @@
 #include <string_view>
 #include <optional>
 #include <pthread.h>
+#ifdef ILLIXR_INTEGRATION
+#include "illixr/switchboard.hpp"
+#endif
 
 namespace ILLIXR_AUDIO{
 	class ABAudio{
@@ -21,7 +24,11 @@ namespace ILLIXR_AUDIO{
 		// Process a block (1024) samples of sound
 		void processBlock();
 		// Load sound source files (predefined)
+#ifdef ILLIXR_INTEGRATION
+        void loadSource(const std::shared_ptr<ILLIXR::switchboard> sb);
+#else
 		void loadSource();
+#endif
 
 		// Buffer of most recent processed block for fast copying to audio buffer
 		short mostRecentBlockL[BLOCK_SIZE];
