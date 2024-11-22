@@ -11,18 +11,23 @@
 
 #ifdef ILLIXR_INTEGRATION
 std::string get_path(const std::shared_ptr<ILLIXR::switchboard>& sb) {
-    std::string path = std::string{AUDIO_SAMPLES} + "/samples";
-    if(std::filesystem::is_directory(path))
-        return path;
-    const char* AUDIO_ROOT = std::getenv("AUDIO_ROOT");
-    if (!AUDIO_ROOT)
-        ILLIXR::abort("Ausio samples not found, please define AUDIO_ROOT");
+    if(sb) {
+        std::string path = std::string{AUDIO_SAMPLES} + "/samples";
+        if (std::filesystem::is_directory(path))
+            return path;
+        const char *AUDIO_ROOT = std::getenv("AUDIO_ROOT");
+        if (!AUDIO_ROOT)
+            ILLIXR::abort("Ausio samples not found, please define AUDIO_ROOT");
 
-    return std::string{AUDIO_ROOT} + "/samples/";
+        return std::string{AUDIO_ROOT} + "/samples/";
+    } else {
 #else
-std::string get_path() {
-    return "samples/";
-#endif /// ILLIXR_INTEGRATION
+        std::string get_path() {
+#endif
+        return "samples/";
+#ifdef ILLIXR_INTEGRATION
+    }
+#endif
 }
 
 ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeIn)
