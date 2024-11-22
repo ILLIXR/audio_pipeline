@@ -22,7 +22,7 @@ public:
         , xcoder{"", encoding ? ILLIXR_AUDIO::ABAudio::ProcessType::ENCODE : ILLIXR_AUDIO::ABAudio::ProcessType::DECODE}
         , encoding_{encoding}
     {
-        xcoder.loadSource();
+        xcoder.loadSource(_m_sb);
     }
 
     virtual void _p_thread_setup() override {

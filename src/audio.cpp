@@ -5,11 +5,12 @@
 
 #ifdef ILLIXR_INTEGRATION
 #include "illixr/error_util.hpp"
+#include "illixr/switchboard.hpp"
 #include <filesystem>
 #endif /// ILLIXR_INTEGRATION
 
-std::string get_path() {
 #ifdef ILLIXR_INTEGRATION
+std::string get_path(const std::shared_ptr<switchboard> sb) {
     std::string path = std::string{AUDIO_SAMPLES} + "/samples";
     if(std::filesystem::is_directory(path))
         return path;
@@ -19,6 +20,7 @@ std::string get_path() {
 
     return std::string{AUDIO_ROOT} + "/samples/";
 #else
+std::string get_path() {
     return "samples/";
 #endif /// ILLIXR_INTEGRATION
 }
@@ -56,8 +58,11 @@ ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeI
     num_blocks_left = 0;
 }
 
-
+#ifdef ILLIXR_INTEGRATION
+void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<switchboard> sb){
+#else
 void ILLIXR_AUDIO::ABAudio::loadSource(){
+#endif
 #ifndef NDEBUG
     /// Temporarily clear errno here if set (until merged with #225)
     if (errno > 0) {
@@ -66,6 +71,9 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
 #endif /// NDEBUG
 
     /// Add a bunch of sound sources
+#ifdef ILLIXR_INTEGRATION
+    const std::string samples_folder{get_path(sb)};
+#else
     const std::string samples_folder{get_path()};
     if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL) {
         soundSrcs.emplace_back(samples_folder + "lectureSample.wav", NORDER, true);
