@@ -75,6 +75,7 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
     const std::string samples_folder{get_path(sb)};
 #else
     const std::string samples_folder{get_path()};
+#endif
     if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL) {
         soundSrcs.emplace_back(samples_folder + "lectureSample.wav", NORDER, true);
         soundSrcs.back().setSrcPos({
