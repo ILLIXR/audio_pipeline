@@ -14,8 +14,8 @@ set(ILLIXR_INTEGRATION ON)
 add_definitions(-DILLIXR_INTEGRATION)
 set(ILLIXR_ROOT "" CACHE PATH "Path to ILLIXR headers")
 
-pkg_check_modules(PORTAUDIO portaudio-2.0>=19)
-pkg_check_modules(SPATIALAUDIO spatialaudio)
+pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0>=19)
+pkg_check_modules(SPATIALAUDIO REQUIRED spatialaudio)
 find_package(spdlog REQUIRED)
 find_package(SQLite3 REQUIRED)
 

@@ -10,7 +10,7 @@
 #endif /// ILLIXR_INTEGRATION
 
 #ifdef ILLIXR_INTEGRATION
-std::string get_path(const std::shared_ptr<ILLIXR::switchboard> sb) {
+std::string get_path(const std::shared_ptr<ILLIXR::switchboard>& sb) {
     std::string path = std::string{AUDIO_SAMPLES} + "/samples";
     if(std::filesystem::is_directory(path))
         return path;
@@ -59,7 +59,7 @@ ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeI
 }
 
 #ifdef ILLIXR_INTEGRATION
-void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<ILLIXR::switchboard> sb){
+void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<ILLIXR::switchboard>& sb){
 #else
 void ILLIXR_AUDIO::ABAudio::loadSource(){
 #endif

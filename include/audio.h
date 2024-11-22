@@ -25,7 +25,7 @@ namespace ILLIXR_AUDIO{
 		void processBlock();
 		// Load sound source files (predefined)
 #ifdef ILLIXR_INTEGRATION
-        void loadSource(const std::shared_ptr<ILLIXR::switchboard> sb);
+        void loadSource(const std::shared_ptr<ILLIXR::switchboard>& sb);
 #else
 		void loadSource();
 #endif
