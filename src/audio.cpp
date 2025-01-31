@@ -68,12 +68,10 @@ void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<ILLIXR::switchboard
 #else
 void ILLIXR_AUDIO::ABAudio::loadSource(){
 #endif
-#ifndef NDEBUG
     /// Temporarily clear errno here if set (until merged with #225)
     if (errno > 0) {
         errno = 0;
     }
-#endif /// NDEBUG
 
     /// Add a bunch of sound sources
 #ifdef ILLIXR_INTEGRATION
