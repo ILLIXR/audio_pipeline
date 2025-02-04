@@ -19,6 +19,12 @@ pkg_check_modules(SPATIALAUDIO REQUIRED spatialaudio)
 find_package(spdlog REQUIRED)
 find_package(SQLite3 REQUIRED)
 
+if (CMAKE_VERSION VERSION_LESS "3.30.0")
+    find_package(Boost REQUIRED COMPONENTS filesystem serialization iostreams)
+else()
+    find_package(Boost REQUIRED COMPONENTS filesystem serialization iostreams CONFIG)
+endif()
+
 add_executable(solo${ILLIXR_BUILD_SUFFIX}.exe src/main.cpp)
 add_library(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} SHARED src/audio.cpp src/audio_component.cpp src/sound.cpp src/realtime.cpp)
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${PROJECT_SOURCE_DIR}/include ${ILLIXR_ROOT})
@@ -28,7 +34,7 @@ endif()
 target_include_directories(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} PUBLIC ${PORTAUDIO_INCLUDE_DIRS} ${SPATIALAUDIO_INCLUDE_DIRS})
 target_link_libraries(plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} PUBLIC ${PORTAUDIO_LIBRARIES} ${SPATIALAUDIO_LIBRARIES} spdlog::spdlog sqlite3)
 
-target_link_libraries(solo${ILLIXR_BUILD_SUFFIX}.exe PUBLIC plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} pthread spdlog::spdlog)
+target_link_libraries(solo${ILLIXR_BUILD_SUFFIX}.exe PUBLIC plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} pthread spdlog::spdlog Boost::serialization)
 
 install(TARGETS plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} DESTINATION lib)
 install(TARGETS solo${ILLIXR_BUILD_SUFFIX}.exe DESTINATION bin)
