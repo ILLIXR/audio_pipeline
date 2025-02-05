@@ -16,8 +16,8 @@ class audio_xcoding : public threadloop
 public:
     audio_xcoding(phonebook *pb_, bool encoding)
         : threadloop{encoding ? "audio_encoding" : "audio_decoding", pb_}
-        , _m_sb{pb->lookup_impl<switchboard>()}
-        , _m_clock{pb->lookup_impl<RelativeClock>()}
+        , _m_sb{pb_->lookup_impl<switchboard>()}
+        , _m_clock{pb_->lookup_impl<relative_clock>()}
         , _m_pose{_m_sb->get_reader<pose_type>("slow_pose")}
         , xcoder{"", encoding ? ILLIXR_AUDIO::ABAudio::ProcessType::ENCODE : ILLIXR_AUDIO::ABAudio::ProcessType::DECODE}
         , encoding_{encoding}
@@ -44,11 +44,11 @@ public:
 
 private:
     const std::shared_ptr<switchboard> _m_sb;
-    const std::shared_ptr<RelativeClock> _m_clock;
+    const std::shared_ptr<relative_clock> _m_clock;
     switchboard::reader<pose_type> _m_pose;
     ILLIXR_AUDIO::ABAudio xcoder;
     time_point last_time;
-    static constexpr duration audio_period{freq2period(static_cast<double>(SAMPLERATE) / static_cast<double>(BLOCK_SIZE))};
+    static constexpr duration audio_period{freq_to_period(static_cast<double>(SAMPLERATE) / static_cast<double>(BLOCK_SIZE))};
     bool encoding_;
 };
 
