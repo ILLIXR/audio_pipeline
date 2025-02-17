@@ -1,13 +1,18 @@
-#include <iostream>
-#include <cassert>
-#include <cstdlib>
-#include "audio.h"
+#include "audio.hpp"
 
 #ifdef ILLIXR_INTEGRATION
 #include "illixr/error_util.hpp"
 #include "illixr/switchboard.hpp"
+#endif /// ILLIXR_INTEGRATION
+
+#include <iostream>
+#include <cassert>
+#include <cstdlib>
+
+#ifdef ILLIXR_INTEGRATION
 #include <filesystem>
 #endif /// ILLIXR_INTEGRATION
+
 
 #ifdef ILLIXR_INTEGRATION
 std::string get_path(const std::shared_ptr<ILLIXR::switchboard>& sb) {
@@ -30,33 +35,32 @@ std::string get_path(const std::shared_ptr<ILLIXR::switchboard>& sb) {
 #endif
 }
 
-ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeIn)
-    : processType {procTypeIn}
-    , outputFile {
-          processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL
-          ? std::make_optional<std::ofstream>(outputFilePath, std::ios_base::out | std::ios_base::binary)
+ILLIXR::audio::ab_audio::ab_audio(std::string output_file_path, process_type proc_type_in)
+    : process_type_ {proc_type_in}
+    , output_file_ {
+          process_type_ == ILLIXR::audio::ab_audio::process_type::FULL
+          ? std::make_optional<std::ofstream>(output_file_path, std::ios_base::out | std::ios_base::binary)
           : std::nullopt
-      }
-{
-    if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL) {
-        generateWAVHeader();
+      } {
+    if (process_type_ == ILLIXR::audio::ab_audio::process_type::FULL) {
+        generate_wav_header();
     }
 
     unsigned int tailLength {0U};
 
     /// Binauralizer as ambisonics decoder
-    if (!decoder.Configure(NORDER, true, SAMPLERATE, BLOCK_SIZE, tailLength)) {
-        configAbort("decoder");
+    if (!decoder_.Configure(NORDER, true, SAMPLERATE, BLOCK_SIZE, tailLength)) {
+        config_abort("decoder");
     }
 
     /// Processor to rotate
-    if (!rotator.Configure(NORDER, true, BLOCK_SIZE, tailLength)) {
-        configAbort("rotator");
+    if (!rotator_.Configure(NORDER, true, BLOCK_SIZE, tailLength)) {
+        config_abort("rotator");
     }
 
     /// Processor to zoom
-    if (!zoomer.Configure(NORDER, true, tailLength)) {
-        configAbort("zoomer");
+    if (!zoomer_.Configure(NORDER, true, tailLength)) {
+        config_abort("zoomer");
     }
 
     buffer_ready = false;
@@ -64,9 +68,9 @@ ILLIXR_AUDIO::ABAudio::ABAudio(std::string outputFilePath, ProcessType procTypeI
 }
 
 #ifdef ILLIXR_INTEGRATION
-void ILLIXR_AUDIO::ABAudio::loadSource(const std::shared_ptr<ILLIXR::switchboard>& sb){
+void ILLIXR::audio::ab_audio::load_source(const std::shared_ptr<ILLIXR::switchboard>& sb){
 #else
-void ILLIXR_AUDIO::ABAudio::loadSource(){
+void ILLIXR::audio::ab_audio::loadSource(){
 #endif
     /// Temporarily clear errno here if set (until merged with #225)
     if (errno > 0) {
@@ -79,16 +83,16 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
 #else
     const std::string samples_folder{get_path()};
 #endif
-    if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL) {
-        soundSrcs.emplace_back(samples_folder + "lectureSample.wav", NORDER, true);
-        soundSrcs.back().setSrcPos({
+    if (process_type_ == ILLIXR::audio::ab_audio::process_type::FULL) {
+        sound_srcs_.emplace_back(samples_folder + "lectureSample.wav", NORDER, true);
+        sound_srcs_.back().set_src_pos({
             .fAzimuth   = -0.1f,
             .fElevation = 3.14f/2,
             .fDistance  = 1
         });
 
-        soundSrcs.emplace_back(samples_folder + "radioMusicSample.wav", NORDER, true);
-        soundSrcs.back().setSrcPos({
+        sound_srcs_.emplace_back(samples_folder + "radioMusicSample.wav", NORDER, true);
+        sound_srcs_.back().set_src_pos({
             .fAzimuth   = 1.0f,
             .fElevation = 0.0f,
             .fDistance  = 5
@@ -101,12 +105,12 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
             /// it has not been set
             /// The path here is broken, we need to specify a relative path like we do in kimera
             assert(errno == 0);
-            soundSrcs.emplace_back(samples_folder + "lectureSample.wav", NORDER, true);
+            sound_srcs_.emplace_back(samples_folder + "lectureSample.wav", NORDER, true);
             assert(errno == 0);
 
-            soundSrcs.back().setSrcPos({
+            sound_srcs_.back().set_src_pos({
                 .fAzimuth   = i * -0.1f,
-                .fElevation = i * 3.14f/2,
+                .fElevation = i * 3.14f / 2,
                 .fDistance  = i * 1.0f
             });
         }
@@ -114,7 +118,7 @@ void ILLIXR_AUDIO::ABAudio::loadSource(){
 }
 
 
-void ILLIXR_AUDIO::ABAudio::processBlock() {
+void ILLIXR::audio::ab_audio::process_block() {
     float** resultSample = new float*[2];
     resultSample[0] = new float[BLOCK_SIZE];
     resultSample[1] = new float[BLOCK_SIZE];
@@ -123,18 +127,18 @@ void ILLIXR_AUDIO::ABAudio::processBlock() {
     CBFormat sumBF;
     sumBF.Configure(NORDER, true, BLOCK_SIZE);
 
-    if (processType != ILLIXR_AUDIO::ABAudio::ProcessType::DECODE) {
-        readNEncode(sumBF);
+    if (process_type_ != ILLIXR::audio::ab_audio::process_type::DECODE) {
+        read_and_encode(sumBF);
     }
 
-    if (processType != ILLIXR_AUDIO::ABAudio::ProcessType::ENCODE) {
+    if (process_type_ != ILLIXR::audio::ab_audio::process_type::ENCODE) {
         /// Processing garbage data if just decoding
-        rotateNZoom(sumBF);
-        decoder.Process(&sumBF, resultSample);
+        rotate_and_zoom(sumBF);
+        decoder_.Process(&sumBF, resultSample);
     }
 
-    if (processType == ILLIXR_AUDIO::ABAudio::ProcessType::FULL) {
-        writeFile(resultSample);
+    if (process_type_ == ILLIXR::audio::ab_audio::process_type::FULL) {
+        write_file(resultSample);
         if (num_blocks_left > 0) {
             num_blocks_left--;
         }
@@ -147,11 +151,11 @@ void ILLIXR_AUDIO::ABAudio::processBlock() {
 
 
 /// Read from WAV files and encode into ambisonics format
-void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF) {
-    for (unsigned int soundIdx = 0U; soundIdx < soundSrcs.size(); ++soundIdx) {
+void ILLIXR::audio::ab_audio::read_and_encode(CBFormat& sumBF) {
+    for (unsigned int soundIdx = 0U; soundIdx < sound_srcs_.size(); ++soundIdx) {
         /// 'readInBFormat' now returns a weak_ptr, ensuring that we don't access
         /// or destruct a freed resource
-        std::weak_ptr<CBFormat> tempBF_weak {soundSrcs[soundIdx].readInBFormat()};
+        std::weak_ptr<CBFormat> tempBF_weak {sound_srcs_[soundIdx].read_in_b_format()};
         std::shared_ptr<CBFormat> tempBF{tempBF_weak.lock()};
 
         if (tempBF != nullptr) {
@@ -162,7 +166,7 @@ void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF) {
             }
         } else {
             static constexpr std::string_view read_fail_msg{
-                "[ABAudio] Failed to read/encode. Sound has expired or been destroyed."
+                "[ab_audio] Failed to read/encode. Sound has expired or been destroyed."
             };
 #ifdef ILLIXR_INTEGRATION
             ILLIXR::abort(std::string{read_fail_msg});
@@ -176,49 +180,49 @@ void ILLIXR_AUDIO::ABAudio::readNEncode(CBFormat& sumBF) {
 
 
 /// Simple rotation
-void ILLIXR_AUDIO::ABAudio::updateRotation() {
-    frame++;
-    Orientation head(0,0,1.0*frame/1500*3.14*2);
-    rotator.SetOrientation(head);
-    rotator.Refresh();
+void ILLIXR::audio::ab_audio::update_rotation() {
+    frame_++;
+    Orientation head(0, 0, 1.0 * frame_ / 1500 * 3.14 * 2);
+    rotator_.SetOrientation(head);
+    rotator_.Refresh();
 }
 
 
 /// Simple zoom
-void ILLIXR_AUDIO::ABAudio::updateZoom() {
-    frame++;
-    zoomer.SetZoom(sinf(frame/100));
-    zoomer.Refresh();
+void ILLIXR::audio::ab_audio::update_zoom() {
+    frame_++;
+    zoomer_.SetZoom(sinf(frame_/100));
+    zoomer_.Refresh();
 }
 
 
 /// Process some rotation and zoom effects
-void ILLIXR_AUDIO::ABAudio::rotateNZoom(CBFormat& sumBF) {
-    updateRotation();
-    rotator.Process(&sumBF, BLOCK_SIZE);
-    updateZoom();
-    zoomer.Process(&sumBF, BLOCK_SIZE);
+void ILLIXR::audio::ab_audio::rotate_and_zoom(CBFormat& sumBF) {
+    update_rotation();
+    rotator_.Process(&sumBF, BLOCK_SIZE);
+    update_zoom();
+    zoomer_.Process(&sumBF, BLOCK_SIZE);
 }
 
 
-void ILLIXR_AUDIO::ABAudio::writeFile(float** resultSample) {
+void ILLIXR::audio::ab_audio::write_file(float** resultSample) {
     /// Normalize(Clipping), then write into file
     for (std::size_t sampleIdx = 0U; sampleIdx < BLOCK_SIZE; ++sampleIdx) {
         resultSample[0][sampleIdx] = std::max(std::min(resultSample[0][sampleIdx], +1.0f), -1.0f);
         resultSample[1][sampleIdx] = std::max(std::min(resultSample[1][sampleIdx], +1.0f), -1.0f);
         int16_t tempSample0 = (int16_t)(resultSample[0][sampleIdx]/1.0 * 32767);
         int16_t tempSample1 = (int16_t)(resultSample[1][sampleIdx]/1.0 * 32767);
-        outputFile->write((char*)&tempSample0,sizeof(short));
-        outputFile->write((char*)&tempSample1,sizeof(short));
+        output_file_->write((char*)&tempSample0,sizeof(short));
+        output_file_->write((char*)&tempSample1,sizeof(short));
 
         /// Cache written block in object buffer until needed by realtime audio thread
-        mostRecentBlockL[sampleIdx] = tempSample0;
-        mostRecentBlockR[sampleIdx] = tempSample1;
+        most_recent_block_L[sampleIdx] = tempSample0;
+        most_recent_block_R[sampleIdx] = tempSample1;
     }
 }
 
 
-namespace ILLIXR_AUDIO
+namespace ILLIXR::audio
 {
     /// NOTE: WAV FILE SIZE is not correct
     typedef struct __attribute__ ((packed)) WAVHeader_t
@@ -240,20 +244,20 @@ namespace ILLIXR_AUDIO
 }
 
 
-void ILLIXR_AUDIO::ABAudio::generateWAVHeader() {
+void ILLIXR::audio::ab_audio::generate_wav_header() {
     /// Brute force wav header
     WAVHeader wavh;
-    outputFile->write((char*)&wavh, sizeof(WAVHeader));
+    output_file_->write((char*)&wavh, sizeof(WAVHeader));
 }
 
 
-void ILLIXR_AUDIO::ABAudio::configAbort(const std::string_view& compName) const
+void ILLIXR::audio::ab_audio::config_abort(const std::string_view& comp_name) const
 {
-    static constexpr std::string_view cfg_fail_msg{"[ABAudio] Failed to configure "};
+    static constexpr std::string_view cfg_fail_msg{"[ab_audio] Failed to configure "};
 #ifdef ILLIXR_INTEGRATION
-    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{compName});
+    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{comp_name});
 #else
-    std::cerr << cfg_fail_msg << compName << std::endl;
+    std::cerr << cfg_fail_msg << comp_name << std::endl;
     std::abort();
 #endif /// ILLIXR_INTEGRATION
 }

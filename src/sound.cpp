@@ -1,46 +1,42 @@
-#include <algorithm>
-#include <cassert>
-#include <cstddef>
-#include <cstdlib>
-#include "sound.h"
+#include "sound.hpp"
 
 #ifdef ILLIXR_INTEGRATION
 #include "illixr/error_util.hpp"
 #endif /// ILLIXR_INTEGRATION
 
+#include <cassert>
+#include <cstddef>
 
-ILLIXR_AUDIO::Sound::Sound(
-    std::string srcFilename,
-    [[maybe_unused]] unsigned int nOrder,
-    [[maybe_unused]] bool b3D
-) : srcFile{srcFilename, std::fstream::in}
-  , BFormat{std::make_shared<CBFormat>()}
-  , amp{1.0}
-{
+
+ILLIXR::audio::sound::sound(std::string src_filename, unsigned int n_order, bool b3D)
+        : src_file_{src_filename, std::fstream::in}
+        , b_format_{std::make_shared<CBFormat>()}
+        , amp_{1.0} {
+    (void) b3D;
     /// NOTE: This is currently only accepts mono channel 16-bit depth WAV file
     /// TODO: Change brutal read from wav file
     constexpr std::size_t SRC_FILE_SIZE {44U};
     std::byte temp[SRC_FILE_SIZE];
-    srcFile.read(reinterpret_cast<char*>(temp), sizeof(temp));
+    src_file_.read(reinterpret_cast<char*>(temp), sizeof(temp));
 
     /// BFormat file initialization
-    if (!BFormat->Configure(nOrder, true, BLOCK_SIZE)) {
-        configAbort("BFormat");
+    if (!b_format_->Configure(n_order, true, BLOCK_SIZE)) {
+        config_abort("BFormat");
     }
-    BFormat->Refresh();
+    b_format_->Refresh();
 
     /// Encoder initialization
-    if (!BEncoder.Configure(nOrder, true, SAMPLERATE)) {
-        configAbort("BEncoder");
+    if (!b_encoder_.Configure(n_order, true, SAMPLERATE)) {
+        config_abort("b_encoder_");
     }
-    BEncoder.Refresh();
+    b_encoder_.Refresh();
 
-    srcPos.fAzimuth   = 0.0f;
-    srcPos.fElevation = 0.0f;
-    srcPos.fDistance  = 0.0f;
+    src_pos_.fAzimuth   = 0.0f;
+    src_pos_.fElevation = 0.0f;
+    src_pos_.fDistance  = 0.0f;
 
-    BEncoder.SetPosition(srcPos);
-    BEncoder.Refresh();
+    b_encoder_.SetPosition(src_pos_);
+    b_encoder_.Refresh();
 
     /// Clear errno, as this constructor is setting the flag (with value 2)
     /// A temporary fix.
@@ -48,43 +44,43 @@ ILLIXR_AUDIO::Sound::Sound(
 }
 
 
-void ILLIXR_AUDIO::Sound::setSrcPos(const PolarPoint& pos) {
-    srcPos.fAzimuth   = pos.fAzimuth;
-    srcPos.fElevation = pos.fElevation;
-    srcPos.fDistance  = pos.fDistance;
+void ILLIXR::audio::sound::set_src_pos(const PolarPoint& pos) {
+    src_pos_.fAzimuth   = pos.fAzimuth;
+    src_pos_.fElevation = pos.fElevation;
+    src_pos_.fDistance  = pos.fDistance;
 
-    BEncoder.SetPosition(srcPos);
-    BEncoder.Refresh();
+    b_encoder_.SetPosition(src_pos_);
+    b_encoder_.Refresh();
 }
 
 
-void ILLIXR_AUDIO::Sound::setSrcAmp(float ampScale) {
-    amp = ampScale;
+[[maybe_unused]] void ILLIXR::audio::sound::set_src_amp(float amp_scale) {
+    amp_ = amp_scale;
 }
 
 
 /// TODO: Change brutal read from wav file
-std::weak_ptr<CBFormat> ILLIXR_AUDIO::Sound::readInBFormat() {
+std::weak_ptr<CBFormat> ILLIXR::audio::sound::read_in_b_format() {
     float sampleTemp[BLOCK_SIZE];
-    srcFile.read((char*)sampleTemp, BLOCK_SIZE * sizeof(short));
+    src_file_.read((char*)sampleTemp, BLOCK_SIZE * sizeof(short));
 
     /// Normalize samples to -1 to 1 float, with amplitude scale
     constexpr float SAMPLE_DIV {(2 << 14) - 1}; /// 32767.0f == 2^14 - 1
     for (std::size_t i = 0U; i < BLOCK_SIZE; ++i) {
-        sample[i] = amp * (sampleTemp[i] / SAMPLE_DIV);
+        sample_[i] = amp_ * (sampleTemp[i] / SAMPLE_DIV);
     }
 
-    BEncoder.Process(sample, BLOCK_SIZE, BFormat.get());
-    return BFormat;
+    b_encoder_.Process(sample_, BLOCK_SIZE, b_format_.get());
+    return b_format_;
 }
 
-void ILLIXR_AUDIO::Sound::configAbort(const std::string_view& compName) const
+void ILLIXR::audio::sound::config_abort(const std::string_view& comp_name) const
 {
-    static constexpr std::string_view cfg_fail_msg{"[Sound] Failed to configure "};
+    static constexpr std::string_view cfg_fail_msg{"[sound] Failed to configure "};
 #ifdef ILLIXR_INTEGRATION
-    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{compName});
+    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{comp_name});
 #else
-    std::cerr << cfg_fail_msg << compName << std::endl;
+    std::cerr << cfg_fail_msg << comp_name << std::endl;
     std::abort();
 #endif /// ILLIXR_INTEGRATION
 }

@@ -1,12 +1,14 @@
-#include <audio.h>
-#include <iostream>
-#include <realtime.h>
-#include <pthread.h>
 #include "illixr/switchboard.hpp"
+
+#include "audio.hpp"
+#include "realtime.hpp"
+
+#include <iostream>
+#include <pthread.h>
 
 int main(int argc, char const *argv[])
 {
-    using namespace ILLIXR_AUDIO;
+    using namespace ILLIXR::audio;
 
     if (argc < 2) {
         std::cout << "Usage: " << argv[0] << " <number of size " << BLOCK_SIZE << " blocks to process> ";
@@ -16,27 +18,27 @@ int main(int argc, char const *argv[])
     }
 
     const int numBlocks = atoi(argv[1]);
-    ABAudio::ProcessType procType(ABAudio::ProcessType::FULL);
+    ab_audio::process_type procType(ab_audio::process_type::FULL);
     if (argc > 2){
         if (!strcmp(argv[2], "encode"))
-            procType = ABAudio::ProcessType::ENCODE;
+            procType = ab_audio::process_type::ENCODE;
         else
-            procType = ABAudio::ProcessType::DECODE;
+            procType = ab_audio::process_type::DECODE;
     }
 
-    ABAudio audio("output.wav", procType);
-    audio.loadSource(std::make_shared<ILLIXR::switchboard>(nullptr));
+    ab_audio audio("output.wav", procType);
+    audio.load_source(std::make_shared<ILLIXR::switchboard>(nullptr));
     audio.num_blocks_left = numBlocks;
 
     // Launch realtime audio thread for audio processing
-    if (procType == ABAudio::ProcessType::FULL) {
+    if (procType == ab_audio::process_type::FULL) {
         pthread_t rt_audio_thread;
-        pthread_create(&rt_audio_thread, NULL, illixr_rt_init, (void *)&audio);
-        pthread_join(rt_audio_thread, NULL);
+        pthread_create(&rt_audio_thread, nullptr, illixr_rt_init, (void *)&audio);
+        pthread_join(rt_audio_thread, nullptr);
     }
     else {
         for (int i = 0; i < numBlocks; ++i) {
-            audio.processBlock();
+            audio.process_block();
         }
     }
 

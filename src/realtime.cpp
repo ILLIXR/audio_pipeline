@@ -1,16 +1,16 @@
-#include <realtime.h>
-#include <stdio.h>
-#include <math.h>
-#include <sound.h>
-#include <audio.h>
-#include "portaudio.h"
+#include "sound.hpp"
+#include "audio.hpp"
+
+#include <cstdio>
+#include <portaudio.h>
+#include <realtime.hpp>
 
 #define SAMPLE_RATE ((SAMPLERATE))
 #define AUDIO_FORMAT   paInt16
 typedef unsigned short          sample_t;
 #define SILENCE       ((sample_t)0x00)
 
-using namespace ILLIXR_AUDIO;
+using namespace ILLIXR::audio;
 
 /*
  * illixr_rt_cb
@@ -20,31 +20,42 @@ using namespace ILLIXR_AUDIO;
  * When the realtime audio driver requires more buffered data, this callback
  * method is called. This is where ILLIXR feeds more audio data to the realtime audio engine.
  */
-static int illixr_rt_cb( const void *inputBuffer, void *outputBuffer,
-                           unsigned long framesPerBuffer,
-                           const PaStreamCallbackTimeInfo* timeInfo,
-                           PaStreamCallbackFlags statusFlags,
-                           void *userData ) {
-
-    sample_t *out = (sample_t*)outputBuffer;
-    ABAudio *audioObj = (ABAudio *)userData;
+static int illixr_rt_cb(const void *input_buffer, void *output_buffer,
+                        unsigned long frames_per_buffer,
+                        const PaStreamCallbackTimeInfo* time_info,
+                        PaStreamCallbackFlags status_flags,
+                        void *user_data ) {
+    (void) frames_per_buffer;
+    (void) time_info;
+    (void) status_flags;
+    auto *out = (sample_t*)output_buffer;
+    auto *audio_obj = (ab_audio *)user_data;
     int i;
-    (void) inputBuffer; /* Prevent unused variable warnings. */
+    (void) input_buffer; /* Prevent unused variable warnings. */
 
     // As this is an interrupt context, lots of data processing is ill-advised.
     // In future iterations, all processing will be handled in a separate thread with proper
     // synchronization primatives.
-    audioObj->processBlock();
+    audio_obj->process_block();
 
     for (i = 0; i < BLOCK_SIZE; i++) {
-        *out++ = audioObj->mostRecentBlockL[i];
-        *out++ = audioObj->mostRecentBlockR[i];
+        *out++ = audio_obj->most_recent_block_L[i];
+        *out++ = audio_obj->most_recent_block_R[i];
     }
 
     return 0;
 }
 
 /*******************************************************************/
+
+void* print_err(const PaError err) {
+    Pa_Terminate();
+    fprintf( stderr, "An error occured while using the portaudio stream\n" );
+    fprintf( stderr, "Error number: %d\n", err );
+    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+    return (void *)err;
+
+}
 
 /*
  * illixr_rt_init
@@ -62,64 +73,56 @@ static int illixr_rt_cb( const void *inputBuffer, void *outputBuffer,
  * This function is blocking and will not return until the audio source is exhausted.
  * Launch this in an independent thread!
  */
-void *illixr_rt_init(void *audioObj)
-{
-    PaStreamParameters  outputParameters;
+void *illixr_rt_init(void *audio_obj) {
+    PaStreamParameters  output_parameters;
     PaStream*           stream;
     PaError             err;
-    PaTime              streamOpened;
-    int                 i, totalSamps;
+    PaTime              stream_opened;
 
     printf("Initializing audio hardware...\n");
 
     err = Pa_Initialize();
     if( err != paNoError )
-        goto error;
+        return print_err(err);
 
-    outputParameters.device = Pa_GetDefaultOutputDevice(); /* Default output device. */
-    if (outputParameters.device == paNoDevice) {
-      fprintf(stderr,"Error: No default output device.\n");
-      goto error;
+    output_parameters.device = Pa_GetDefaultOutputDevice(); /* Default output device. */
+    if (output_parameters.device == paNoDevice) {
+        fprintf(stderr,"Error: No default output device.\n");
+        return print_err(err);
     }
-    outputParameters.channelCount = 2;                     /* Stereo output. */
-    outputParameters.sampleFormat = AUDIO_FORMAT;
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
-    outputParameters.hostApiSpecificStreamInfo = NULL;
+    output_parameters.channelCount = 2;                     /* Stereo output. */
+    output_parameters.sampleFormat = AUDIO_FORMAT;
+    output_parameters.suggestedLatency = Pa_GetDeviceInfo( output_parameters.device )->defaultLowOutputLatency;
+    output_parameters.hostApiSpecificStreamInfo = NULL;
     err = Pa_OpenStream( &stream,
                          NULL,      /* No input. */
-                         &outputParameters,
+                         &output_parameters,
                          SAMPLE_RATE,
                          BLOCK_SIZE,       /* Frames per buffer. */
                          paClipOff, /* We won't output out of range samples so don't bother clipping them. */
                          illixr_rt_cb,
-                         audioObj );
+                         audio_obj);
     if( err != paNoError )
-        goto error;
+        return print_err(err);
 
-    streamOpened = Pa_GetStreamTime( stream ); /* Time in seconds when stream was opened (approx). */
+    stream_opened = Pa_GetStreamTime( stream ); /* Time in seconds when stream was opened (approx). */
 
     printf("Launching stream!\n");
     err = Pa_StartStream( stream );
     if( err != paNoError )
-        goto error;
+        return print_err(err);
 
     // Spin until the audio marks itself as being complete
-    while( ((ABAudio *)audioObj)->num_blocks_left > 0) {
-        Pa_Sleep(0.25f);
+    while( ((ab_audio *)audio_obj)->num_blocks_left > 0) {
+        Pa_Sleep(25);
     }
 
     printf("Stopping stream\n");
 
     err = Pa_CloseStream( stream );
     if( err != paNoError )
-        goto error;
+        return print_err(err);
 
     Pa_Terminate();
-    return (void *)err;
-error:
-    Pa_Terminate();
-    fprintf( stderr, "An error occured while using the portaudio stream\n" );
-    fprintf( stderr, "Error number: %d\n", err );
-    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
     return (void *)err;
 }
