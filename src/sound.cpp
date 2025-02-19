@@ -76,11 +76,9 @@ std::weak_ptr<CBFormat> ILLIXR::audio::sound::read_in_b_format() {
 
 void ILLIXR::audio::sound::config_abort(const std::string_view& comp_name) const
 {
-    static constexpr std::string_view cfg_fail_msg{"[sound] Failed to configure "};
-#ifdef ILLIXR_INTEGRATION
-    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{comp_name});
-#else
-    std::cerr << cfg_fail_msg << comp_name << std::endl;
-    std::abort();
+    static constexpr std::string_view cfg_fail_msg{"[Sound] Failed to configure "};
+#ifndef ILLIXR_INTEGRATION
+    std::cerr << cfg_fail_msg << compName << std::endl;
 #endif /// ILLIXR_INTEGRATION
+    throw std::runtime_error(std::string{cfg_fail_msg} + std::string{compName});
 }

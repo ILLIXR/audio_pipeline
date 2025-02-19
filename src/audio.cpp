@@ -22,7 +22,7 @@ std::string get_path(const std::shared_ptr<ILLIXR::switchboard>& sb) {
             return path;
         const char *AUDIO_ROOT = std::getenv("AUDIO_ROOT");
         if (!AUDIO_ROOT)
-            ILLIXR::abort("Ausio samples not found, please define AUDIO_ROOT");
+            throw std::runtime_error("Ausio samples not found, please define AUDIO_ROOT");
 
         return std::string{AUDIO_ROOT} + "/samples/";
     } else {
@@ -169,10 +169,10 @@ void ILLIXR::audio::ab_audio::read_and_encode(CBFormat& sumBF) {
                 "[ab_audio] Failed to read/encode. Sound has expired or been destroyed."
             };
 #ifdef ILLIXR_INTEGRATION
-            ILLIXR::abort(std::string{read_fail_msg});
+            throw std::runtime_error(std::string{read_fail_msg});
 #else
             std::cerr << read_fail_msg << std::endl;
-            std::abort();
+            throw std::runtime_error(std::string{read_fail_msg});
 #endif /// ILLIXR_INTEGRATION
         }
    }
@@ -253,11 +253,9 @@ void ILLIXR::audio::ab_audio::generate_wav_header() {
 
 void ILLIXR::audio::ab_audio::config_abort(const std::string_view& comp_name) const
 {
-    static constexpr std::string_view cfg_fail_msg{"[ab_audio] Failed to configure "};
-#ifdef ILLIXR_INTEGRATION
-    ILLIXR::abort(std::string{cfg_fail_msg} + std::string{comp_name});
-#else
-    std::cerr << cfg_fail_msg << comp_name << std::endl;
-    std::abort();
+    static constexpr std::string_view cfg_fail_msg{"[ABAudio] Failed to configure "};
+#ifndef ILLIXR_INTEGRATION
+    std::cerr << cfg_fail_msg << compName << std::endl;
 #endif /// ILLIXR_INTEGRATION
+    throw std::runtime_error(std::string{cfg_fail_msg} + std::string{compName});
 }
