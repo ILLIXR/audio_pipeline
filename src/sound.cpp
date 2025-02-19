@@ -80,5 +80,5 @@ void ILLIXR::audio::sound::config_abort(const std::string_view& comp_name) const
 #ifndef ILLIXR_INTEGRATION
     std::cerr << cfg_fail_msg << compName << std::endl;
 #endif /// ILLIXR_INTEGRATION
-    throw std::runtime_error(std::string{cfg_fail_msg} + std::string{compName});
+    throw std::runtime_error(std::string{cfg_fail_msg} + std::string{comp_name});
 }
