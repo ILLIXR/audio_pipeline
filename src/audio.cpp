@@ -20,7 +20,7 @@ std::string get_path(const std::shared_ptr<ILLIXR::switchboard>& sb) {
         std::string path = std::string{AUDIO_SAMPLES} + "/samples";
         if (std::filesystem::is_directory(path))
             return path;
-        const char *AUDIO_ROOT = std::getenv("AUDIO_ROOT");
+        const char *AUDIO_ROOT = sb->get_env_char("AUDIO_ROOT");
         if (!AUDIO_ROOT)
             throw std::runtime_error("Ausio samples not found, please define AUDIO_ROOT");
 
