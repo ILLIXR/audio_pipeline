@@ -49,5 +49,5 @@ target_link_libraries(solo${ILLIXR_BUILD_SUFFIX}.exe PUBLIC plugin.audio_pipelin
 
 install(TARGETS plugin.audio_pipeline${ILLIXR_BUILD_SUFFIX} DESTINATION lib)
 install(TARGETS solo${ILLIXR_BUILD_SUFFIX}.exe DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/samples
         DESTINATION etc/audio_pipeline)
