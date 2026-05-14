@@ -1,7 +1,7 @@
 #pragma once
 #include "audio.hpp"
 
-#include "illixr/data_format/pose.hpp"
+#include "illixr/data_format/poses/head_pose.hpp"
 #include "illixr/phonebook.hpp"
 #include "illixr/relative_clock.hpp"
 #include "illixr/switchboard.hpp"
@@ -23,7 +23,7 @@ public:
 private:
     const std::shared_ptr<switchboard>          switchboard_;
     const std::shared_ptr<relative_clock>       clock_;
-    switchboard::reader<data_format::pose_type> pose_;
+    switchboard::reader<data_format::head_pose_type> pose_;
     ILLIXR::audio::ab_audio                     xcoder_;
     time_point                                  last_time_;
     static constexpr duration                   audio_period_{
