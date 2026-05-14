@@ -3,10 +3,7 @@
  *
  * The realtime audio support requires the PortAudio library.
  */
-
-#ifndef REALTIME_H
-#define REALTIME_H
-
+#pragma once
 /*
  * illixr_rt_init
  *
@@ -23,6 +20,4 @@
  * This function is blocking and will not return until the audio source is exhausted.
  * Launch this in an independent thread!
  */
-void *illixr_rt_init(void *audioObj);
-
-#endif // REALTIME_H
+void *illixr_rt_init(void *audio_obj);
