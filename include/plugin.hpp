@@ -23,7 +23,7 @@ public:
 private:
     const std::shared_ptr<switchboard>          switchboard_;
     const std::shared_ptr<relative_clock>       clock_;
-    switchboard::reader<data_format::head_pose_type> pose_;
+    switchboard::reader<data_format::pose::head_pose_type> pose_;
     ILLIXR::audio::ab_audio                     xcoder_;
     time_point                                  last_time_;
     static constexpr duration                   audio_period_{

@@ -10,9 +10,9 @@ using namespace ILLIXR;
 audio_xcoding::audio_xcoding(phonebook *pb_, bool encoding)
         : threadloop{encoding ? "audio_encoding" : "audio_decoding", pb_},
           switchboard_{pb_->lookup_impl<switchboard>()}, clock_{pb_->lookup_impl<relative_clock>()},
-          pose_{switchboard_->get_reader<data_format::pose_type>("slow_pose")}, xcoder_{"", encoding
-                                                                                            ? ILLIXR::audio::ab_audio::process_type::ENCODE
-                                                                                            : ILLIXR::audio::ab_audio::process_type::DECODE},
+          pose_{switchboard_->get_reader<data_format::pose::head_pose_type>("slow_pose")}, xcoder_{"", encoding
+                                                                                                  ? ILLIXR::audio::ab_audio::process_type::ENCODE
+                                                                                                  : ILLIXR::audio::ab_audio::process_type::DECODE},
           encoding_{encoding} {
     xcoder_.load_source(switchboard_);
 }
